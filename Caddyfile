@@ -1,0 +1,3 @@
+komodo.ipn.rahulsalvi.com {
+	reverse_proxy localhost:9120
+}

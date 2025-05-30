@@ -1,0 +1,90 @@
+# vim: ft=yaml.docker-compose
+services:
+  tailscale:
+    image: tailscale/tailscale:latest
+    environment:
+      - TS_AUTHKEY=file:/run/secrets/ts_authkey
+      - TS_HOSTNAME=komodo
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_USERSPACE=false
+      - TS_ACCEPT_DNS=true
+    volumes:
+      - ts_state:/var/lib/tailscale
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - NET_ADMIN
+    secrets:
+      - ts_authkey
+    healthcheck:
+      test: [ "CMD-SHELL", "tailscale status" ]
+      interval: 10s
+      timeout: 5s
+      retries: 60
+    restart: unless-stopped
+  caddy:
+    image: ghcr.io/rahulsalvi/caddy:latest
+    volumes:
+      - ./Caddyfile:/etc/caddy/sites_enabled/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    cap_add:
+      - NET_ADMIN
+    depends_on:
+      tailscale:
+        condition: service_healthy
+    network_mode: service:tailscale
+    restart: unless-stopped
+  mongo:
+    image: mongo
+    depends_on:
+      tailscale:
+        condition: service_healthy
+    network_mode: service:tailscale
+    labels:
+      komodo.skip:
+    command: --quiet --wiredTigerCacheSizeGB 0.25 --bind_ip 127.0.0.1
+    volumes:
+      - mongo-data:/data/db
+      - mongo-config:/data/configdb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: ${KOMODO_DB_PASSWORD}
+    restart: unless-stopped
+  core:
+    image: ghcr.io/mbecker20/komodo:latest
+    depends_on:
+      tailscale:
+        condition: service_healthy
+      mongo:
+        condition: service_started
+    network_mode: service:tailscale
+    labels:
+      komodo.skip:
+    environment:
+      KOMODO_TITLE: Komodo
+      KOMODO_HOST: https://komodo.ipn.rahulsalvi.com
+      KOMODO_BIND_IP: "127.0.0.1"
+      KOMODO_PASSKEY: ${KOMODO_PASSKEY}
+      KOMODO_WEBHOOK_SECRET: ${KOMODO_WEBHOOK_SECRET}
+      KOMODO_JWT_SECRET: ${KOMODO_JWT_SECRET}
+      KOMODO_LOCAL_AUTH: true
+      KOMODO_DATABASE_ADDRESS: localhost:27017
+      KOMODO_DATABASE_USERNAME: admin
+      KOMODO_DATABASE_PASSWORD: ${KOMODO_DB_PASSWORD}
+    volumes:
+      - repo-cache:/repo-cache
+    restart: unless-stopped
+volumes:
+  ts_state:
+  caddy_data:
+  caddy_config:
+  mongo-data:
+  mongo-config:
+  repo-cache:
+secrets:
+  ts_authkey:
+    file: ./ts_authkey.txt
+networks:
+  default:
+    enable_ipv6: true
