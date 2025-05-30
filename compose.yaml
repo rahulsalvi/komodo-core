@@ -4,7 +4,7 @@ name: komodo
 include:
   - path:
       - ext/docker-compose-snippets/caddy.yaml
-      - ext/docker-compose-snippets/reverse_proxy_override.yaml
+      - compose_override.yaml
 services:
   mongo:
     image: mongo
@@ -24,10 +24,9 @@ services:
     restart: unless-stopped
   core:
     image: ghcr.io/mbecker20/komodo:latest
-    hostname: proxy_target
     depends_on:
       tailscale:
-        condition: service_started
+        condition: service_healthy
       mongo:
         condition: service_started
     network_mode: service:tailscale
@@ -37,7 +36,6 @@ services:
       KOMODO_TITLE: Komodo
       KOMODO_HOST: https://komodo.ipn.rahulsalvi.com
       KOMODO_BIND_IP: "127.0.0.1"
-      KOMDOO_PORT: 9120
       KOMODO_PASSKEY: ${KOMODO_PASSKEY}
       KOMODO_WEBHOOK_SECRET: ${KOMODO_WEBHOOK_SECRET}
       KOMODO_JWT_SECRET: ${KOMODO_JWT_SECRET}
@@ -52,6 +50,9 @@ volumes:
   mongo-data:
   mongo-config:
   repo-cache:
+configs:
+  Caddyfile:
+    file: ./Caddyfile
 secrets:
   ts_authkey:
     file: ./ts_authkey.txt
