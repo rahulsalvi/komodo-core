@@ -1,4 +1,4 @@
-FROM ghcr.io/moghtech/komodo-core:1.18
+FROM ghcr.io/moghtech/komodo-core:1.18.0
 
 RUN apt-get update \
   && apt-get install -y ca-certificates \
