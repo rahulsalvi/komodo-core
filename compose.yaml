@@ -23,7 +23,7 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: ${KOMODO_DB_PASSWORD}
     restart: unless-stopped
   core:
-    image: ghcr.io/mbecker20/komodo:latest
+    image: ghcr.io/rahulsalvi/komodo-core:latest
     depends_on:
       tailscale:
         condition: service_healthy
