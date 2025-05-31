@@ -1,8 +1,0 @@
-services:
-  tailscale:
-    environment:
-      TS_ACCEPT_DNS: true
-  caddy:
-    configs:
-      - source: Caddyfile
-        target: /etc/caddy/sites_enabled/Caddyfile

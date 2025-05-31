@@ -2,16 +2,12 @@
 name: komodo
 
 include:
-  - path:
-      - ext/docker-compose-snippets/caddy.yaml
-      - compose_override.yaml
+  - ext/docker-compose-snippets/tailscale-caddy.yaml
+  - ext/docker-compose-snippets/simple-reverse-proxy.yaml
+
 services:
   mongo:
     image: mongo
-    depends_on:
-      tailscale:
-        condition: service_healthy
-    network_mode: service:tailscale
     labels:
       komodo.skip:
     command: --quiet --wiredTigerCacheSizeGB 0.25 --bind_ip 127.0.0.1
@@ -22,20 +18,21 @@ services:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: ${KOMODO_DB_PASSWORD}
     restart: unless-stopped
+    extends:
+      file: ext/docker-compose-snippets/tailscale-app-base.yaml
+      service: tailscale-app-base
+
   core:
     image: ghcr.io/rahulsalvi/komodo-core:latest
     depends_on:
-      tailscale:
-        condition: service_healthy
       mongo:
         condition: service_started
-    network_mode: service:tailscale
     labels:
       komodo.skip:
     environment:
       KOMODO_TITLE: Komodo
       KOMODO_HOST: https://komodo.ipn.rahulsalvi.com
-      KOMODO_BIND_IP: "127.0.0.1"
+      KOMODO_PORT: 8080
       KOMODO_PASSKEY: ${KOMODO_PASSKEY}
       KOMODO_WEBHOOK_SECRET: ${KOMODO_WEBHOOK_SECRET}
       KOMODO_JWT_SECRET: ${KOMODO_JWT_SECRET}
@@ -46,13 +43,16 @@ services:
     volumes:
       - repo-cache:/repo-cache
     restart: unless-stopped
+    extends:
+      file: ext/docker-compose-snippets/tailscale-app-base.yaml
+      service: tailscale-app-base
+
 volumes:
   mongo-data:
   mongo-config:
   repo-cache:
-configs:
-  Caddyfile:
-    file: ./Caddyfile
+
+
 secrets:
   ts_authkey:
     file: ./ts_authkey.txt
