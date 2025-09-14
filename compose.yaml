@@ -47,13 +47,13 @@ services:
       KOMODO_DATABASE_USERNAME: admin
       KOMODO_DATABASE_PASSWORD: ${KOMODO_DB_PASSWORD}
     volumes:
-      - repo-cache:/repo-cache
+      - komodo-backups:/backups
     restart: unless-stopped
     extends:
       file: ext/docker-compose-snippets/tailscale-app-base.yaml
       service: tailscale-app-base
 
 volumes:
+  komodo-backups:
   mongo-data:
   mongo-config:
-  repo-cache:
