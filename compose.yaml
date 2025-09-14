@@ -1,4 +1,5 @@
 # vim: ft=yaml.docker-compose
+---
 name: komodo
 
 include:
@@ -31,7 +32,7 @@ services:
       komodo.skip:
     environment:
       KOMODO_TITLE: Komodo
-      KOMODO_HOST: https://komodo.ipn.rahulsalvi.com
+      KOMODO_HOST: https://${COMPOSE_PROJECT_NAME}.ipn.rahulsalvi.com
       KOMODO_PORT: 8080
       KOMODO_PASSKEY: ${KOMODO_PASSKEY}
       KOMODO_WEBHOOK_SECRET: ${KOMODO_WEBHOOK_SECRET}
@@ -56,8 +57,3 @@ volumes:
   mongo-data:
   mongo-config:
   repo-cache:
-
-
-secrets:
-  ts_authkey:
-    file: ./ts_authkey.txt
