@@ -46,6 +46,7 @@ services:
       KOMODO_DATABASE_ADDRESS: localhost:27017
       KOMODO_DATABASE_USERNAME: admin
       KOMODO_DATABASE_PASSWORD: ${KOMODO_DB_PASSWORD}
+      TZ: America/Los_Angeles
     volumes:
       - komodo-backups:/backups
     restart: unless-stopped
